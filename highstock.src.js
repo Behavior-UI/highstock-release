@@ -5860,6 +5860,7 @@ Tick.prototype = {
 		// create the grid line
 		if (gridLineWidth) {
 			gridLinePath = axis.getPlotLinePath(pos + tickmarkOffset, gridLineWidth * reverseCrisp, old, true);
+			if (options.tweakGridLine) gridLinePath = options.tweakGridLine(gridLinePath, index);
 
 			if (gridLine === UNDEFINED) {
 				attribs = {
@@ -9452,7 +9453,7 @@ Pointer.prototype = {
 		e = this.normalize(e, chartPosition);
 
 		// If we're outside, hide the tooltip
-		if (chartPosition && hoverSeries && !this.inClass(e.target, 'highcharts-tracker') &&
+		if (chartPosition && chart.tooltip && !chart.tooltip.isHidden && !this.inClass(e.target, 'highcharts-tracker') &&
 				!chart.isInsidePlot(e.chartX - chart.plotLeft, e.chartY - chart.plotTop)) {
 			this.reset();
 		}
@@ -15361,6 +15362,12 @@ var ColumnSeries = extendClass(Series, {
 				pointOffsetWidth - (categoryWidth / 2)) *
 				(reversedXAxis ? -1 : 1);
 
+		if (options.tweakPointSize){
+			var tweaks = options.tweakPointSize(pointWidth, pointPadding);
+			pointWidth = tweaks.pointWidth;
+			pointPadding = tweaks.pointPadding;
+		}
+
 		// Save it for reading in linked series (Error bars particularly)
 		return (series.columnMetrics = { 
 			width: pointWidth, 
@@ -19703,6 +19710,7 @@ Scroller.prototype = {
 			tempElem = renderer.rect(-4.5, 0, 9, 16, 0, 1)
 				.attr(attr)
 				.add(handles[index]);
+			if (handlesOptions.tweakGrip) handlesOptions.tweakGrip('grip', tempElem, index);
 			elementsToDestroy.push(tempElem);
 
 			// the rifles
@@ -19717,6 +19725,7 @@ Scroller.prototype = {
 					0.5, 12
 				]).attr(attr)
 				.add(handles[index]);
+			if (handlesOptions.tweakGrip) handlesOptions.tweakGrip('rifle', tempElem, index);
 			elementsToDestroy.push(tempElem);
 		}
 
@@ -20320,24 +20329,27 @@ Scroller.prototype = {
 
 		if (scroller.navigatorEnabled) {
 			// an x axis is required for scrollbar also
-			scroller.xAxis = xAxis = new Axis(chart, merge({
-				ordinal: baseSeries && baseSeries.xAxis.options.ordinal // inherit base xAxis' ordinal option
-			}, navigatorOptions.xAxis, {
-				id: 'navigator-x-axis',
-				isX: true,
-				type: 'datetime',
-				index: xAxisIndex,
-				height: height,
-				offset: 0,
-				offsetLeft: scrollbarHeight,
-				offsetRight: -scrollbarHeight,
-				keepOrdinalPadding: true, // #2436
-				startOnTick: false,
-				endOnTick: false,
-				minPadding: 0,
-				maxPadding: 0,
-				zoomEnabled: false
-			}));
+			scroller.xAxis = xAxis = new Axis(chart, (navigatorOptions.tweakNavigatorOptions || function(o){return o;})(
+				merge({
+						ordinal: baseSeries && baseSeries.xAxis.options.ordinal // inherit base xAxis' ordinal option
+					}, navigatorOptions.xAxis, {
+						id: 'navigator-x-axis',
+						isX: true,
+						type: 'datetime',
+						index: xAxisIndex,
+						height: height,
+						offset: 0,
+						offsetLeft: scrollbarHeight,
+						offsetRight: -scrollbarHeight,
+						keepOrdinalPadding: true, // #2436
+						startOnTick: false,
+						endOnTick: false,
+						minPadding: 0,
+						maxPadding: 0,
+						zoomEnabled: false
+					}
+				)
+			));
 
 			scroller.yAxis = yAxis = new Axis(chart, merge(navigatorOptions.yAxis, {
 				id: 'navigator-y-axis',
