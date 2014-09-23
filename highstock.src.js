@@ -11182,8 +11182,9 @@ Chart.prototype = {
 		if (subtitle) {
 			subtitle
 				.css({ width: (subtitleOptions.width || autoWidth) + PX })
-				.align(extend({ 
-					y: titleOffset + (titleOptions.margin - 13) + renderer.fontMetrics(titleOptions.style.fontSize, subtitle).b 
+				.align(extend({
+					y: titleOffset + ((titleOptions || subtitleOptions).margin - 13) +
+						 renderer.fontMetrics((titleOptions || subtitleOptions).style.fontSize, subtitle).b
 				}, subtitleOptions), false, 'spacingBox');
 			
 			if (!subtitleOptions.floating && !subtitleOptions.verticalAlign) {
