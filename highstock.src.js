@@ -11,7 +11,7 @@
 
 (function (root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = root.document ? 
+        module.exports = root.document ?
         factory(root) :
         function (w) {
             return factory(w);
@@ -1254,11 +1254,11 @@
         stop;
 
     /**
-     * Helper function to load and extend Highcharts with adapter functionality. 
+     * Helper function to load and extend Highcharts with adapter functionality.
      * @param  {object|function} adapter - HighchartsAdapter or jQuery
      */
     Highcharts.loadAdapter = function (adapter) {
-    
+
         if (adapter) {
             // If jQuery, then load our default jQueryAdapter
             if (adapter.fn && adapter.fn.jquery) {
@@ -1815,7 +1815,7 @@
          * @param {Number} alpha
          */
         brighten: function (alpha) {
-            var i, 
+            var i,
                 rgba = this.rgba;
 
             if (this.stops) {
@@ -6149,7 +6149,7 @@
                 line;
 
             if (!defined(yOffset)) {
-                yOffset = axis.side === 2 ? 
+                yOffset = axis.side === 2 ?
                     rotCorr.y + 8 :
                     // #3140, #3140
                     yOffset = mathCos(label.rotation * deg2rad) * (rotCorr.y - label.getBBox(false, 0).height / 2);
@@ -6234,6 +6234,7 @@
             // create the grid line
             if (gridLineWidth) {
                 gridLinePath = axis.getPlotLinePath(pos + tickmarkOffset, gridLineWidth * reverseCrisp, old, true);
+                if (options.tweakGridLine) gridLinePath = options.tweakGridLine(gridLinePath, index);
 
                 if (gridLine === UNDEFINED) {
                     attribs = {
@@ -6444,7 +6445,7 @@
             }
 
             // the plot band/line label
-            if (optionsLabel && defined(optionsLabel.text) && path && path.length && 
+            if (optionsLabel && defined(optionsLabel.text) && path && path.length &&
                     axis.width > 0 && axis.height > 0 && !path.flat) {
                 // apply defaults
                 optionsLabel = merge({
@@ -7424,10 +7425,10 @@
                     });
 
                     each(axis.series, function (series) {
-                        var seriesPointRange = hasCategories ? 
-                            1 : 
-                            (isXAxis ? 
-                                pick(series.options.pointRange, closestPointRange, 0) : 
+                        var seriesPointRange = hasCategories ?
+                            1 :
+                            (isXAxis ?
+                                pick(series.options.pointRange, closestPointRange, 0) :
                                 (axis.axisPointRange || 0)), // #2806
                             pointPlacement = series.options.pointPlacement;
 
@@ -7800,9 +7801,9 @@
                     var otherOptions = axis.options,
                         horiz = axis.horiz,
                         key = [
-                            horiz ? otherOptions.left : otherOptions.top, 
+                            horiz ? otherOptions.left : otherOptions.top,
                             otherOptions.width,
-                            otherOptions.height, 
+                            otherOptions.height,
                             otherOptions.pane
                         ].join(',');
 
@@ -8393,9 +8394,9 @@
                     .attr({
                         zIndex: 7,
                         rotation: axisTitleOptions.rotation || 0,
-                        align: 
+                        align:
                             axisTitleOptions.textAlign ||
-                            { 
+                            {
                                 low: opposite ? 'right' : 'left',
                                 middle: 'center',
                                 high: opposite ? 'left' : 'right'
@@ -8606,7 +8607,7 @@
                 // alternate grid color
                 if (alternateGridColor) {
                     each(tickPositions, function (pos, i) {
-                        to = tickPositions[i + 1] !== UNDEFINED ? tickPositions[i + 1] + tickmarkOffset : axis.max - tickmarkOffset; 
+                        to = tickPositions[i + 1] !== UNDEFINED ? tickPositions[i + 1] + tickmarkOffset : axis.max - tickmarkOffset;
                         if (i % 2 === 0 && pos < axis.max && to <= axis.max + (chart.polar ? -tickmarkOffset : tickmarkOffset)) { // #2248, #4660
                             if (!alternateBands[pos]) {
                                 alternateBands[pos] = new Highcharts.PlotLineOrBand(axis);
@@ -8664,7 +8665,7 @@
 
                 // When the objects are finished fading out, destroy them
                 syncTimeout(
-                    destroyInactiveItems, 
+                    destroyInactiveItems,
                     coll === alternateBands || !chart.hasRendered || !delay ? 0 : delay
                 );
             });
@@ -8775,7 +8776,7 @@
 
         /**
          * Draw the crosshair
-         * 
+         *
          * @param  {Object} e The event arguments from the modified pointer event
          * @param  {Object} point The Point object
          */
@@ -9948,7 +9949,7 @@
                     }
                 });
             }
-        
+
             // Just move the tooltip, #349
             if (allowMove) {
                 tooltip.refresh(tooltipPoints);
@@ -11999,7 +12000,8 @@
                 subtitle
                     .css({ width: (subtitleOptions.width || autoWidth) + PX })
                     .align(extend({
-                        y: titleOffset + (titleOptions.margin - 13) + renderer.fontMetrics(subtitleOptions.style.fontSize, title).b
+                         y: titleOffset + ((titleOptions || subtitleOptions).margin - 13) +
+                         renderer.fontMetrics((titleOptions || subtitleOptions).style.fontSize, subtitle).b
                     }, subtitleOptions), false, 'spacingBox');
 
                 if (!subtitleOptions.floating && !subtitleOptions.verticalAlign) {
@@ -12299,7 +12301,7 @@
 
             // Handle the isResizing counter
             chart.isResizing += 1;
-        
+
             // set the animation for the current process
             setAnimation(animation, chart);
 
@@ -15407,7 +15409,7 @@
             stack.points[pointKey] = [pick(stack.cum, stackThreshold)];
             stack.touched = yAxis.stacksTouched;
 
-            // In area charts, if there are multiple points on the same X value, let the 
+            // In area charts, if there are multiple points on the same X value, let the
             // area fill the full span of those points
             if (stackIndicator.index > 0 && series.singleStacks === false) {
                 stack.points[pointKey][0] = stack.points[series.index + ',' + x + ',0'][0];
@@ -16530,6 +16532,12 @@
                 pointXOffset = pointPadding + (groupPadding + colIndex *
                     pointOffsetWidth - (categoryWidth / 2)) *
                     (reversedXAxis ? -1 : 1);
+
+            if (options.tweakPointSize){
+            	var tweaks = options.tweakPointSize(pointWidth, pointPadding);
+            	pointWidth = tweaks.pointWidth;
+            	pointPadding = tweaks.pointPadding;
+            }
 
             // Save it for reading in linked series (Error bars particularly)
             series.columnMetrics = {
@@ -18061,7 +18069,7 @@
             pick = H.pick,
             addEvent = H.addEvent;
 
-        // Collect potensial overlapping data labels. Stack labels probably don't need to be 
+        // Collect potensial overlapping data labels. Stack labels probably don't need to be
         // considered because they are usually accompanied by data labels that lie inside the columns.
         Chart.prototype.callbacks.push(function (chart) {
             function collectAndHide() {
@@ -18093,9 +18101,9 @@
         });
 
         /**
-         * Hide overlapping labels. Labels are moved and faded in and out on zoom to provide a smooth 
+         * Hide overlapping labels. Labels are moved and faded in and out on zoom to provide a smooth
          * visual imression.
-         */    
+         */
         Chart.prototype.hideOverlappingLabels = function (labels) {
 
             var len = labels.length,
@@ -18116,7 +18124,7 @@
                         y2 + h2 < y1
                     );
                 };
-    
+
             // Mark with initial opacity
             for (i = 0; i < len; i++) {
                 label = labels[i];
@@ -18180,10 +18188,10 @@
                             };
                         }
 
-                        // Animate or set the opacity                
+                        // Animate or set the opacity
                         label.alignAttr.opacity = newOpacity;
                         label[label.isOld ? 'animate' : 'attr'](label.alignAttr, null, complete);
-                    
+
                     }
                     label.isOld = true;
                 }
@@ -18411,8 +18419,8 @@
             addEvent(item.checkbox, 'click', function (event) {
                 var target = event.target;
                 fireEvent(
-                    item.series || item, 
-                    'checkboxClick', 
+                    item.series || item,
+                    'checkboxClick',
                     { // #3712
                         checked: target.checked,
                         item: item
@@ -18818,9 +18826,9 @@
                 plotX = Math.floor(this.plotX);
 
             return chart.renderer.symbols.circle(
-                plotBox.translateX + (inverted ? series.yAxis.len - this.plotY : plotX) - size, 
-                plotBox.translateY + (inverted ? series.xAxis.len - plotX : this.plotY) - size, 
-                size * 2, 
+                plotBox.translateX + (inverted ? series.yAxis.len - this.plotY : plotX) - size,
+                plotBox.translateY + (inverted ? series.xAxis.len - plotX : this.plotY) - size,
+                size * 2,
                 size * 2
             );
         }
@@ -19697,7 +19705,7 @@
     /**
      * Highstock JS v2.1.10 (2015-12-07)
      * Highcharts Broken Axis module
-     * 
+     *
      * License: www.highcharts.com/license
      */
 
@@ -19747,8 +19755,8 @@
                     keep,
                     ret;
 
-            
-                if (i) { 
+
+                if (i) {
 
                     while (i--) {
                         if (this.isInBreak(breaks[i], val)) {
@@ -19771,7 +19779,7 @@
 
         wrap(Axis.prototype, 'setTickPositions', function (proceed) {
             proceed.apply(this, Array.prototype.slice.call(arguments, 1));
-        
+
             if (this.options.breaks) {
                 var axis = this,
                     tickPositions = this.tickPositions,
@@ -19789,7 +19797,7 @@
                 this.tickPositions.info = info;
             }
         });
-    
+
         wrap(Axis.prototype, 'init', function (proceed, chart, userOptions) {
             // Force Axis to be not-ordinal when breaks are defined
             if (userOptions.breaks && userOptions.breaks.length) {
@@ -19801,7 +19809,7 @@
             if (this.options.breaks) {
 
                 var axis = this;
-            
+
                 axis.doPostTranslate = true;
 
                 this.val2lin = function (val) {
@@ -19823,7 +19831,7 @@
 
                     return nval;
                 };
-            
+
                 this.lin2val = function (val) {
                     var nval = val,
                         brk,
@@ -19846,7 +19854,7 @@
                     // If trying to set extremes inside a break, extend it to before and after the break ( #3857 )
                     while (this.isInAnyBreak(newMin)) {
                         newMin -= this.closestPointRange;
-                    }            
+                    }
                     while (this.isInAnyBreak(newMax)) {
                         newMax -= this.closestPointRange;
                     }
@@ -19859,7 +19867,7 @@
                     var breaks = axis.options.breaks,
                         breakArrayT = [],    // Temporary one
                         breakArray = [],
-                        length = 0, 
+                        length = 0,
                         inBrk,
                         repeat,
                         brk,
@@ -19916,7 +19924,7 @@
                         }
                         return ret;
                     });
-                
+
                     // Simplify the breaks
                     inBrk = 0;
                     start = min;
@@ -19941,7 +19949,7 @@
                     axis.breakArray = breakArray;
 
                     fireEvent(axis, 'afterBreaks');
-                
+
                     axis.transA *= ((max - axis.min) / (max - min - length));
 
                     axis.min = min;
@@ -20004,11 +20012,11 @@
                     each(breaks, function (brk) {
                         eventName = false;
 
-                        if ((threshold < brk.from && y > brk.to) || (threshold > brk.from && y < brk.from)) { 
+                        if ((threshold < brk.from && y > brk.to) || (threshold > brk.from && y < brk.from)) {
                             eventName = 'pointBreak';
                         } else if ((threshold < brk.from && y > brk.from && y < brk.to) || (threshold > brk.from && y > brk.to && y < brk.from)) { // point falls inside the break
                             eventName = 'pointInBreak'; // docs
-                        } 
+                        }
                         if (eventName) {
                             fireEvent(axis, eventName, { point: point, brk: brk });
                         }
@@ -20440,7 +20448,7 @@
                 point: extend(point, { key: formattedKey }),
                 series: series
             });
-    
+
         }
 
         // else, fall back to the regular formatter
@@ -21438,6 +21446,7 @@
                 tempElem = renderer.rect(-4.5, 0, 9, 16, 0, 1)
                     .attr(attr)
                     .add(handles[index]);
+                if (handlesOptions.tweakGrip) handlesOptions.tweakGrip('grip', tempElem, index);
                 elementsToDestroy.push(tempElem);
 
                 // the rifles
@@ -21452,6 +21461,7 @@
                         0.5, 12
                     ]).attr(attr)
                     .add(handles[index]);
+                if (handlesOptions.tweakGrip) handlesOptions.tweakGrip('rifle', tempElem, index);
                 elementsToDestroy.push(tempElem);
             }
 
@@ -22051,26 +22061,29 @@
 
             if (scroller.navigatorEnabled) {
                 // an x axis is required for scrollbar also
-                scroller.xAxis = xAxis = new Axis(chart, merge({
-                    // inherit base xAxis' break and ordinal options
-                    breaks: baseSeries && baseSeries.xAxis.options.breaks,
-                    ordinal: baseSeries && baseSeries.xAxis.options.ordinal
-                }, navigatorOptions.xAxis, {
-                    id: 'navigator-x-axis',
-                    isX: true,
-                    type: 'datetime',
-                    index: xAxisIndex,
-                    height: height,
-                    offset: 0,
-                    offsetLeft: scrollbarHeight,
-                    offsetRight: -scrollbarHeight,
-                    keepOrdinalPadding: true, // #2436
-                    startOnTick: false,
-                    endOnTick: false,
-                    minPadding: 0,
-                    maxPadding: 0,
-                    zoomEnabled: false
-                }));
+                scroller.xAxis = xAxis = new Axis(chart, (navigatorOptions.tweakNavigatorOptions || function(o){return o;})(
+	      					merge({
+	      						// inherit base xAxis' break and ordinal options
+	      						breaks: baseSeries && baseSeries.xAxis.options.breaks,
+	      						ordinal: baseSeries && baseSeries.xAxis.options.ordinal
+	      					}, navigatorOptions.xAxis, {
+	      						id: 'navigator-x-axis',
+	      						isX: true,
+	      						type: 'datetime',
+	      						index: xAxisIndex,
+	      						height: height,
+	      						offset: 0,
+	      						offsetLeft: scrollbarHeight,
+	      						offsetRight: -scrollbarHeight,
+	      						keepOrdinalPadding: true, // #2436
+	      						startOnTick: false,
+	      						endOnTick: false,
+	      						minPadding: 0,
+	      						maxPadding: 0,
+	      						zoomEnabled: false
+	      					})
+	      				)
+	      			);
 
                 scroller.yAxis = yAxis = new Axis(chart, merge(navigatorOptions.yAxis, {
                     id: 'navigator-y-axis',
@@ -23948,6 +23961,6 @@
         product: PRODUCT,
         version: VERSION
     });
-    
+
     return Highcharts;
 }));
